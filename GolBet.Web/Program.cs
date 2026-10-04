@@ -34,7 +34,7 @@ builder.Services.AddScoped<IMatchRepository, MatchRepository>();
 
 // Specific repositories 
 builder.Services.AddScoped<IMatchRepository, MatchRepository>();
-
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 // AutoMapper: scans the assembly containing MappingProfile for all profiles 
 builder.Services.AddAutoMapper(typeof(MappingProfile));

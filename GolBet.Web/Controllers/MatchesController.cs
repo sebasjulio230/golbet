@@ -1,7 +1,7 @@
 ﻿// GolBet.Web/Controllers/MatchesController.cs  (versión completa) 
 
 using GolBet.Entities.Enums;
-
+using GolBet.Services.DTOs;
 using GolBet.Services.Interfaces;
 
 using Microsoft.AspNetCore.Mvc;
@@ -59,6 +59,8 @@ public class MatchesController : Controller
         return View(match);
 
     }
+
+    private readonly ITeamService _teamService;
 
     // GET /Matches/Create 
 
