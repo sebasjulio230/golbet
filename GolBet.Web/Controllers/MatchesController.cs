@@ -7,9 +7,19 @@ using GolBet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
+// GolBet.Web/Controllers/MatchesController.cs  — proteger SOLO la escritura 
+
+// (Index y Detail siguen públicos: el anónimo puede mirar la cartelera) 
+
+using Microsoft.AspNetCore.Authorization;
+
+using GolBet.Repositories.Data;
+
 
 
 namespace GolBet.Web.Controllers;
+
+
 
 
 
@@ -17,12 +27,15 @@ public class MatchesController : Controller
 {
 
     private readonly IMatchService _matchService;
+    private readonly ITeamService _teamService;
 
 
 
-    public MatchesController(IMatchService matchService)
-
-        => _matchService = matchService;
+    public MatchesController(IMatchService matchService,ITeamService teamService)
+    {
+        _matchService = matchService;
+        _teamService = teamService;
+    }
 
 
 
@@ -60,9 +73,10 @@ public class MatchesController : Controller
 
     }
 
-    private readonly ITeamService _teamService;
+    
 
     // GET /Matches/Create 
+    [Authorize(Roles = DbSeeder.AdminRole)]
 
     public async Task<IActionResult> Create()
 
@@ -75,7 +89,7 @@ public class MatchesController : Controller
     }
 
 
-
+    [Authorize(Roles = DbSeeder.AdminRole)]
     [HttpPost, ValidateAntiForgeryToken]
 
     public async Task<IActionResult> Create(MatchFormDto dto)
@@ -121,12 +135,90 @@ public class MatchesController : Controller
     }
 
 
+    [Authorize(Roles = DbSeeder.AdminRole)]
+    // GET /Matches/Edit/5 
 
-    // GET /Matches/Edit/5  y  POST /Matches/Edit  siguen el mismo molde 
+    public async Task<IActionResult> Edit(int id)
 
-    // (con GetForEditAsync y UpdateAsync); 
+    {
 
-    // POST /Matches/Deactivate/5 es idéntico al de Teams. 
+        var dto = await _matchService.GetForEditAsync(id);
+
+        if (dto is null) return NotFound();
+
+
+
+        await LoadTeamsAsync(); // the form needs the dropdowns too 
+
+        return View(dto);
+
+    }
+
+
+    [Authorize(Roles = DbSeeder.AdminRole)]
+    // POST /Matches/Edit 
+
+    [HttpPost, ValidateAntiForgeryToken]
+
+    public async Task<IActionResult> Edit(MatchFormDto dto)
+
+    {
+
+        if (!ModelState.IsValid)
+
+        {
+
+            await LoadTeamsAsync();
+
+            return View(dto);
+
+        }
+
+
+
+        try
+
+        {
+
+            await _matchService.UpdateAsync(dto);
+
+            TempData["Success"] = "Partido actualizado correctamente.";
+
+            return RedirectToAction(nameof(Index));
+
+        }
+
+        catch (InvalidOperationException ex)      // business rule violated 
+
+        {
+
+            ModelState.AddModelError(string.Empty, ex.Message);
+
+            await LoadTeamsAsync();
+
+            return View(dto);
+
+        }
+
+    }
+
+
+    [Authorize(Roles = DbSeeder.AdminRole)]
+    // POST /Matches/Deactivate/5 
+
+    [HttpPost, ValidateAntiForgeryToken]
+
+    public async Task<IActionResult> Deactivate(int id)
+
+    {
+
+        await _matchService.DeactivateAsync(id);
+
+        TempData["Success"] = "Partido desactivado.";
+
+        return RedirectToAction(nameof(Index));
+
+    }
 
 
 
@@ -139,6 +231,4 @@ public class MatchesController : Controller
         ViewBag.Teams = new SelectList(teams, "Id", "Name");
 
     }
-
-
 }
