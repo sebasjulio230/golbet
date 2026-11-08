@@ -14,7 +14,7 @@ using System.Globalization;
 
 
 
-var culture = new CultureInfo("es-CO");
+var culture = new CultureInfo("es-CO");// Dates in Spanish; numbers neutral so model binding reads "2.5" correctlyculture.NumberFormat = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();culture.NumberFormat.NumberGroupSeparator = "";   // "2,5" fails loudly, never binds as 25CultureInfo.DefaultThreadCurrentCulture = culture;CultureInfo.DefaultThreadCurrentUICulture = culture;
 
 CultureInfo.DefaultThreadCurrentCulture = culture;
 
@@ -56,10 +56,12 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 
 // Specific repositories 
 builder.Services.AddScoped<IMatchRepository, MatchRepository>();
+builder.Services.AddScoped<IBetRepository, BetRepository>();
 
 // Specific repositories 
 builder.Services.AddScoped<IMatchRepository, MatchRepository>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IBetService, BetService>();
 
 // AutoMapper: scans the assembly containing MappingProfile for all profiles 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
